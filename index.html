@@ -1,7 +1,7 @@
 <!-- 
     ===========================================================
     DỰ ÁN: HỖ TRỢ GIAO HÀNG (Đoạn 001)
-    PHIÊN BẢN: 3.9 (Fix lỗi tràn khung & Hoàn thiện giao diện)
+    PHIÊN BẢN: 4.0 (Chuyển App trực tiếp - One Click)
     PHÁT TRIỂN BỞI: [YISINORA AKA BÙI ĐỨC ANH]
     MÔ TẢ: Tự động sao chép vị trí + Sao chép số điện thoại.
     BẢN QUYỀN © 8-3-2026 THUỘC VỀ [YISINORA AKA BÙI ĐỨC ANH]. 
@@ -12,7 +12,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hỗ trợ giao hàng v3.9</title>
+    <title>Hỗ trợ giao hàng v4.0</title>
     <style>
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
@@ -34,9 +34,9 @@
             padding: 20px; 
             border-radius: 20px; 
             box-shadow: 0 8px 25px rgba(0,0,0,0.1); 
-            box-sizing: border-box; /* Đảm bảo padding không làm tràn khung */
+            box-sizing: border-box;
             position: relative;
-            overflow: hidden; /* Ngăn chặn nội dung con tràn ra ngoài */
+            overflow: hidden;
         }
 
         h2 { text-align: center; color: #1a73e8; margin-top: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -60,7 +60,7 @@
 
         .btn-action { 
             width: 100%; 
-            padding: 14px 10px; /* Giảm nhẹ padding ngang */
+            padding: 14px 10px; 
             border: none; 
             border-radius: 12px; 
             font-size: 15px; 
@@ -74,31 +74,24 @@
             color: white;
             transition: 0.2s;
             text-decoration: none;
-            box-sizing: border-box; /* Quan trọng để không tràn */
+            box-sizing: border-box;
             text-align: center;
         }
 
         .btn-geo { background: #28a745; }
         .btn-zalo { background: #0068FF; }
         .btn-msg { background: #0084FF; }
-        .btn-confirm { background: #d32f2f; margin-top: 15px; animation: pulse 1.5s infinite; }
+        .btn-confirm { background: #d32f2f; margin-top: 15px; }
         
-        /* Fix lỗi tràn cho nút xem bản đồ */
         .btn-outline { 
             background: #fff; 
             border: 2px solid #ddd; 
             color: #555; 
             font-size: 13px; 
             margin-top: 15px; 
-            white-space: normal; /* Cho phép xuống dòng nếu chữ quá dài */
+            white-space: normal;
             height: auto;
             line-height: 1.4;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.7); }
-            70% { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(211, 47, 47, 0); }
-            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); }
         }
 
         .btn-action:active { transform: scale(0.98); }
@@ -111,10 +104,9 @@
             padding: 15px;
             border-radius: 15px;
             font-size: 14px;
-            margin: 15px 0;
+            margin: 10px 0;
             border: 2px solid #ffc107;
             line-height: 1.5;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             box-sizing: border-box;
         }
 
@@ -204,36 +196,26 @@
     <div id="step2" class="step" style="display: none; border-color: #0068FF;">
         <span class="step-title">Bước 2: Gửi cho tài xế</span>
         
-        <!-- HƯỚNG DẪN CHI TIẾT -->
+        <!-- HƯỚNG DẪN HIỆN SẴN -->
         <div id="zaloInstruct" class="instruction">
                 🚀 <b style="font-size: 16px;">ĐÃ CHÉP VỊ TRÍ!</b><br>
                 Khi vào Zalo/Messenger, hãy <span class="highlight-text">Chạm giữ</span> vào ô nhập tin nhắn và chọn <b>Dán (Paste)</b> hoặc <span class="highlight-text">bấm vào bảng tạm</span>.
             </div>
 
-        <!-- NÚT CHỌN ỨNG DỤNG -->
+        <!-- NÚT GỬI (CHUYỂN APP NGAY) -->
         <div id="appSelector">
-            <button class="btn-action btn-zalo" onclick="prepareSend('zalo')">
-                💬 Gửi qua Zalo
+            <button class="btn-action btn-zalo" onclick="sendDirect('zalo')">
+                💬 Mở Zalo & Gửi ngay
             </button>
 
-            <button class="btn-action btn-msg" onclick="prepareSend('msg')">
-                🌀 Gửi qua Messenger
-            </button>
-        </div>
-
-        <!-- PHẦN XÁC NHẬN CUỐI CÙNG -->
-        <div id="finalConfirmBox" class="instruction-box">
-            🚀 <b>SẴN SÀNG CHƯA?</b><br><br>
-            Bấm nút dưới đây, sau đó <span class="highlight-text">Chạm giữ</span> và chọn <b>Dán</b> để gửi vị trí!<br>
-            
-            <button class="btn-action btn-confirm" id="confirmOpenBtn" onclick="executeOpen()">
-                🚀 MỞ ỨNG DỤNG NGAY
+            <button class="btn-action btn-msg" onclick="sendDirect('msg')">
+                🌀 Mở Messenger & Gửi ngay
             </button>
         </div>
 
-        <!-- NÚT XEM BẢN ĐỒ (FIX TRÀN) -->
+        <!-- NÚT XEM BẢN ĐỒ -->
         <a id="viewMapBtn" href="#" target="_blank" class="btn-action btn-outline" style="display: none;">
-            🗺️ Xem vị trí trên Bản đồ
+            🗺️ Xem lại vị trí trên Bản đồ
         </a>
 
         <!-- GHI CHÚ SỐ ĐIỆN THOẠI -->
@@ -247,7 +229,7 @@
 <div id="toast">Thông báo</div>
 
 <div class="copyright-area">
-    Phiên bản 3.9 (Hoàn thiện)<br>
+    Phiên bản 4.0 (Chuyển App trực tiếp)<br>
     Thiết kế bởi <b>Yisinora AKA Bùi Đức Anh</b>.
 </div>
 
@@ -259,11 +241,10 @@
 
     const phoneToCopy = pZalo.startsWith('+') || pZalo.startsWith('0') ? pZalo : '+' + pZalo;
     let savedMapLink = "";
-    let pendingUrl = "";
 
     window.onload = () => {
         document.getElementById('driverInfo').innerText = `Tài xế: ${pName}`;
-        document.getElementById('phoneMainTxt').innerText = `💡 Tìm số zalo ${phoneToCopy} nếu lỗi`;
+        document.getElementById('phoneMainTxt').innerText = `💡 Tìm số ${phoneToCopy} nếu lỗi`;
     };
 
     function showToast(message) {
@@ -308,7 +289,7 @@
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
                     savedMapLink = `https://www.google.com/maps?q=${lat},${lng}`;
-                    status.innerHTML = "<span style='color: #28a745;'>✅ Đã lấy vị trí!</span>";
+                    status.innerHTML = "<span style='color: #28a745;'>✅ Đã xác định vị trí!</span>";
                     
                     copyToClipboard(savedMapLink).then(() => {
                         showToast("✅ Đã chép vị trí!");
@@ -327,33 +308,24 @@
                 }, 
                 { enableHighAccuracy: true, timeout: 10000 }
             );
-        } else {
-            status.innerText = "⚠️ Trình duyệt không hỗ trợ GPS.";
-            geoBtn.disabled = false;
         }
     }
 
-    async function prepareSend(type) {
+    // HÀM MỚI: CHUYỂN NGAY LẬP TỨC
+    async function sendDirect(type) {
+        // 1. Sao chép lại lần nữa cho chắc
         await copyToClipboard(savedMapLink);
-        pendingUrl = (type === 'zalo') ? 
+        showToast("🚀 Đang mở ứng dụng...");
+
+        // 2. Tạo URL
+        const targetUrl = (type === 'zalo') ? 
             `https://zalo.me/${pZalo.replace('+', '')}` : 
             `https://m.me/${pMsg}`;
         
-        document.getElementById('generalInstruct').style.display = "none";
-        document.getElementById('appSelector').style.display = "none";
-        document.getElementById('finalConfirmBox').style.display = "block";
-        document.getElementById('finalConfirmBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-
-    function executeOpen() {
-        const btn = document.getElementById('confirmOpenBtn');
-        btn.innerText = "⏳ ĐANG MỞ...";
-        btn.disabled = true;
-        window.location.href = pendingUrl;
+        // 3. Chuyển trang ngay sau 300ms (để kịp hiện toast)
         setTimeout(() => {
-            btn.innerText = "🚀 THỬ MỞ LẠI";
-            btn.disabled = false;
-        }, 3000);
+            window.location.href = targetUrl;
+        }, 300);
     }
 
     document.getElementById('copyPhoneBtn').addEventListener('click', function() {
@@ -364,5 +336,4 @@
 </script>
 
 </body>
-
 </html>
