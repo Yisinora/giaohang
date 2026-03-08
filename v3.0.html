@@ -1,0 +1,366 @@
+<!-- 
+    ===========================================================
+    DỰ ÁN: HỖ TRỢ GIAO HÀNG (Đoạn 001)
+    PHIÊN BẢN: 3.0 (Dynamic URL - Đa nhân viên/Cửa hàng)
+    PHÁT TRIỂN BỞI: [YISINORA AKA BÙI ĐỨC ANH]
+    MÔ TẢ: Nhận diện tự động số điện thoại Zalo & Messenger từ Link QR.
+    BẢN QUYỀN © 8-3-2026 THUỘC VỀ [YISINORA AKA BÙI ĐỨC ANH]. 
+    ===========================================================
+-->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hỗ trợ giao hàng v3.0</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background-color: #f0f2f5; 
+            padding: 15px; 
+            color: #333; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        
+        .card { 
+            max-width: 450px; 
+            width: 100%;
+            margin: auto; 
+            background: white; 
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1); 
+            box-sizing: border-box;
+        }
+
+        h2 { text-align: center; color: #1a73e8; margin-top: 0; font-size: 22px; }
+        
+        .step { 
+            margin: 15px 0; 
+            padding: 18px; 
+            border-radius: 15px; 
+            background: #f8f9fa; 
+            border: 1px solid #e0e0e0; 
+            transition: 0.3s;
+        }
+
+        .step-title { 
+            font-weight: bold; 
+            margin-bottom: 12px; 
+            display: block; 
+            color: #1a73e8; 
+            font-size: 17px; 
+        }
+
+        .btn-action { 
+            width: 100%; 
+            padding: 16px; 
+            border: none; 
+            border-radius: 12px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            transition: 0.3s; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+            box-sizing: border-box;
+            margin-top: 8px;
+        }
+
+        .btn-geo { background: #28a745; color: white; }
+        .btn-zalo { background: #0068FF; color: white; }
+        .btn-msg { background: #0084FF; color: white; }
+        .btn-outline { background: #fff; border: 2px solid #ddd; color: #555; font-size: 14px; margin-top: 15px; }
+        
+        .btn-action:active { transform: scale(0.97); opacity: 0.9; }
+
+        .instruction {
+            background: #e7f3ff;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-top: 15px;
+            border: 1px solid #bee5eb;
+            line-height: 1.6;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 104, 255, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 104, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 104, 255, 0); }
+        }
+
+        .highlight-text { color: #d32f2f; font-weight: bold; }
+
+        .phone-note-container {
+            margin-top: 20px;
+            padding: 12px;
+            background: #fff8f8;
+            border: 1px dashed #ffdde0;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .phone-note-container:active { background: #ffebeb; }
+        
+        .phone-main-text {
+            font-size: 16px;
+            color: #d32f2f;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 2px;
+        }
+        
+        .phone-sub-text {
+            font-size: 14px;
+            color: #777;
+            display: block;
+        }
+
+        .footer { 
+            font-size: 13px; 
+            color: #888; 
+            text-align: center; 
+            margin-top: 20px; 
+            line-height: 1.5; 
+        }
+
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #1a73e8;
+            color: #fff;
+            text-align: center;
+            border-radius: 10px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1000;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 15px;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        #toast.show {
+            visibility: visible;
+            animation: fadein 0.5s, fadeout 0.5s 3.5s;
+        }
+
+        @keyframes fadein { from {top: 0; opacity: 0;} to {top: 20px; opacity: 1;} }
+        @keyframes fadeout { from {top: 20px; opacity: 1;} to {top: 0; opacity: 0;} }
+
+        .copyright-area {
+            margin-top: 25px;
+            font-size: 11px;
+            color: #bbb;
+            text-align: center;
+            line-height: 1.6;
+            padding-bottom: 20px;
+        }
+        
+        .driver-badge {
+            background: #e6f4ea;
+            color: #137333;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            border: 1px solid #cce8d6;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div style="text-align: center;">
+        <span class="driver-badge" id="driverInfo">Đang tải thông tin tài xế...</span>
+    </div>
+    <h2>🚚 HỖ TRỢ GIAO HÀNG</h2>
+
+    <!-- BƯỚC 1 -->
+    <div class="step" id="step1Container">
+        <span class="step-title">Bước 1: Xác định vị trí của bạn</span>
+        <button class="btn-action btn-geo" onclick="getLocation()" id="geoBtn">
+            📍 BẤM ĐỂ LẤY VỊ TRÍ
+        </button>
+        <p id="status" style="margin-top:10px; font-size: 14px; text-align: center; font-weight: bold; color: #666;"></p>
+    </div>
+
+    <!-- BƯỚC 2 -->
+    <div id="step2" class="step" style="display: none; border-color: #0068FF;">
+        <span class="step-title">Bước 2: Gửi cho tài xế</span>
+        
+        <div id="zaloArea">
+            <a id="zaloLink" href="#" target="_blank" class="btn-action btn-zalo" onclick="handleZaloClick()">
+                💬 Gửi qua Zalo
+            </a>
+            
+            <div id="zaloInstruct" class="instruction">
+                🚀 <b style="font-size: 16px;">ĐÃ CHÉP VỊ TRÍ!</b><br>
+                Khi vào Zalo/Messenger, hãy <span class="highlight-text">Chạm giữ</span> vào ô nhập tin nhắn và chọn <b>Dán (Paste)</b> hoặc <span class="highlight-text">bấm vào bảng tạm</span>.
+            </div>
+        </div>
+
+        <a id="msgLink" href="#" target="_blank" class="btn-action btn-msg" onclick="handleMsgClick()">
+            🌀 Gửi qua Messenger
+        </a>
+
+        <a id="viewMapBtn" href="#" target="_blank" class="btn-action btn-outline" style="display: none;">
+            🗺️ Xem lại vị trí trên Bản đồ
+        </a>
+
+        <!-- PHẦN SỐ ĐIỆN THOẠI ĐỘNG -->
+        <div class="phone-note-container" id="copyPhoneBtn">
+            <span class="phone-main-text" id="displayPhoneTxt">💡 Lưu ý: Tìm số ...</span>
+            <span class="phone-sub-text">bấm để sao chép số</span>
+        </div>
+    </div>
+
+    <div class="footer">
+        Cung cấp vị trí chính xác giúp tài xế đến nhanh hơn.
+    </div>
+</div>
+
+<div id="toast">Thông báo</div>
+
+<div class="copyright-area">
+    Phiên bản 3.0 (Dynamic QR - Đa nhân viên)<br>
+    © 2026 Thiết kế bởi <b>Yisinora AKA Bùi Đức Anh</b>.
+</div>
+
+<script>
+    let savedMapLink = "";
+    
+    // --- BỘ XỬ LÝ DỮ LIỆU TỪ URL (DYNAMIC URL) ---
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Cài đặt mặc định (Dành cho bạn khi không có tham số trên link)
+    const defaultZalo = "886989784646";
+    const defaultMsg = "Anh301003";
+    const defaultName = "Tài xế Bùi Đức Anh";
+
+    // Lấy dữ liệu từ Link QR (Nếu có)
+    const paramZalo = urlParams.get('zalo') || defaultZalo;
+    const paramMsg = urlParams.get('msg') || defaultMsg;
+    const paramName = urlParams.get('name') || defaultName;
+
+    // Xử lý định dạng số điện thoại để hiển thị cho đẹp
+    let phoneToCopy = paramZalo;
+    if (!phoneToCopy.startsWith('+') && !phoneToCopy.startsWith('0')) {
+        phoneToCopy = '+' + phoneToCopy; // Thêm dấu + nếu dùng mã quốc gia (như 886...)
+    }
+
+    // Nạp dữ liệu vào giao diện ngay khi tải trang
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('zaloLink').href = `https://zalo.me/${paramZalo}`;
+        document.getElementById('msgLink').href = `https://m.me/${paramMsg}`;
+        document.getElementById('displayPhoneTxt').innerText = `💡 Lưu ý: Tìm số ${phoneToCopy}`;
+        document.getElementById('driverInfo').innerText = `🛵 Đang giao hàng: ${paramName}`;
+    });
+    // ----------------------------------------------
+
+    function showToast(message) {
+        const x = document.getElementById("toast");
+        x.innerHTML = message;
+        x.className = "show";
+        setTimeout(function(){ x.className = x.className.replace("show", ""); }, 4000);
+    }
+
+    async function copyToClipboard(text) {
+        if (!text) return false;
+        try {
+            if (navigator.clipboard && window.isSecureContext) {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                const res = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                return res;
+            }
+        } catch (err) {
+            return false;
+        }
+    }
+
+    function getLocation() {
+        const status = document.getElementById('status');
+        const geoBtn = document.getElementById('geoBtn');
+        status.innerText = "🛰️ Đang xác định vị trí...";
+        geoBtn.disabled = true;
+        geoBtn.style.opacity = "0.7";
+        
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    savedMapLink = `https://www.google.com/maps?q=${lat},${lng}`;
+                    
+                    status.innerHTML = "<span style='color: #28a745;'>✅ Đã sẵn sàng!</span>";
+                    
+                    // Tự động copy ngay
+                    copyToClipboard(savedMapLink).then(res => {
+                        showToast("✅ ĐÃ TỰ ĐỘNG COPY VỊ TRÍ!<br>Dán hoặc chọn Bảng tạm để gửi.");
+                        
+                        const mapBtn = document.getElementById('viewMapBtn');
+                        mapBtn.href = savedMapLink;
+                        mapBtn.style.display = "flex";
+                        
+                        document.getElementById('step2').style.display = "block";
+                        document.getElementById('step2').scrollIntoView({ behavior: 'smooth' });
+                    });
+                }, 
+                (err) => {
+                    status.innerText = "⚠️ Không lấy được GPS. Hãy bật định vị và thử lại.";
+                    geoBtn.disabled = false;
+                    geoBtn.style.opacity = "1";
+                }, 
+                { enableHighAccuracy: true, timeout: 10000 }
+            );
+        } else {
+            status.innerText = "⚠️ Thiết bị không hỗ trợ định vị.";
+        }
+    }
+
+    // Sự kiện sao chép số điện thoại (Lấy biến phoneToCopy động)
+    document.getElementById('copyPhoneBtn').addEventListener('click', function() {
+        copyToClipboard(phoneToCopy).then(res => {
+            if(res) showToast(`✅ Đã sao chép số: ${phoneToCopy}`);
+        });
+    });
+
+    function handleZaloClick() {
+        copyToClipboard(savedMapLink);
+        document.getElementById('zaloInstruct').style.display = "block";
+        showToast("Đang mở Zalo...<br>Dán hoặc chọn Bảng tạm để gửi!");
+    }
+
+    function handleMsgClick() {
+        copyToClipboard(savedMapLink);
+        showToast("Đang mở Messenger...<br>Dán hoặc chọn Bảng tạm để gửi!");
+    }
+</script>
+
+</body>
+</html>
