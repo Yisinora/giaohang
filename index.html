@@ -1,7 +1,7 @@
 <!-- 
     ===========================================================
     DỰ ÁN: HỖ TRỢ GIAO HÀNG (Đoạn 001)
-    PHIÊN BẢN: 2.8 (Full Feature Integration)
+    PHIÊN BẢN: 3.0 (Cấu trúc v2.8 + Multi-Staff Support)
     PHÁT TRIỂN BỞI: [YISINORA AKA BÙI ĐỨC ANH]
     MÔ TẢ: Tự động sao chép vị trí + Sao chép số điện thoại (Size 16/14).
     BẢN QUYỀN © 8-3-2026 THUỘC VỀ [YISINORA AKA BÙI ĐỨC ANH]. 
@@ -12,7 +12,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hỗ trợ giao hàng v2.8</title>
+    <title>Hỗ trợ giao hàng v3.0</title>
     <style>
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
@@ -162,6 +162,19 @@
         @keyframes fadein { from {top: 0; opacity: 0;} to {top: 20px; opacity: 1;} }
         @keyframes fadeout { from {top: 20px; opacity: 1;} to {top: 0; opacity: 0;} }
 
+        /* Driver badge style */
+        .driver-badge {
+            background: #e6f4ea;
+            color: #137333;
+            font-size: 12px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            border: 1px solid #cce8d6;
+        }
+
         .copyright-area {
             margin-top: 25px;
             font-size: 11px;
@@ -175,6 +188,9 @@
 <body>
 
 <div class="card">
+    <div style="text-align: center;" id="driverArea">
+        <span class="driver-badge" id="driverInfo">Tài xế: Bùi Đức Anh</span>
+    </div>
     <h2>🚚 HỖ TRỢ GIAO HÀNG</h2>
 
     <!-- BƯỚC 1 -->
@@ -191,17 +207,17 @@
         <span class="step-title">Bước 2: Gửi cho tài xế</span>
         
         <div id="zaloArea">
-            <a id="zaloLink" href="https://zalo.me/886989784646" target="_blank" class="btn-action btn-zalo" onclick="handleZaloClick()">
+            <a id="zaloLink" href="#" target="_blank" class="btn-action btn-zalo" onclick="handleZaloClick()">
                 💬 Gửi qua Zalo
             </a>
             
-            <div id="zaloInstruct" class="instruction">
+            <div id="zaloInstruct" class="instruction" style="display: none;">
                 🚀 <b style="font-size: 16px;">ĐÃ CHÉP VỊ TRÍ!</b><br>
                 Khi vào Zalo/Messenger, hãy <span class="highlight-text">Chạm giữ</span> vào ô nhập tin nhắn và chọn <b>Dán (Paste)</b> hoặc <span class="highlight-text">bấm vào bảng tạm</span>.
             </div>
         </div>
 
-        <a id="msgLink" href="https://m.me/Anh301003" target="_blank" class="btn-action btn-msg" onclick="handleMsgClick()">
+        <a id="msgLink" href="#" target="_blank" class="btn-action btn-msg" onclick="handleMsgClick()">
             🌀 Gửi qua Messenger
         </a>
 
@@ -209,9 +225,9 @@
             🗺️ Xem lại vị trí trên Bản đồ
         </a>
 
-        <!-- PHẦN SỐ ĐIỆN THOẠI MỚI -->
+        <!-- PHẦN SỐ ĐIỆN THOẠI -->
         <div class="phone-note-container" id="copyPhoneBtn">
-            <span class="phone-main-text">💡 Lưu ý: Tìm số +886989784646 nếu zalo không hoạt động</span>
+            <span class="phone-main-text" id="phoneMainTxt">💡 Lưu ý: Tìm số... nếu zalo không hoạt động</span>
             <span class="phone-sub-text">bấm để sao chép số</span>
         </div>
     </div>
@@ -224,13 +240,28 @@
 <div id="toast">Thông báo</div>
 
 <div class="copyright-area">
-    Phiên bản 2.8 (Full Integration)<br>
+    Phiên bản 3.0 (v2.8 Multi-Staff)<br>
     © 2026 Thiết kế bởi <b>Yisinora AKA Bùi Đức Anh</b>.
 </div>
 
 <script>
+    // XỬ LÝ DỮ LIỆU TỪ URL (Hỗ trợ nhiều nhân viên)
+    const urlParams = new URLSearchParams(window.location.search);
+    const pZalo = urlParams.get('zalo') || "886989784646";
+    const pMsg = urlParams.get('msg') || "Anh301003";
+    const pName = urlParams.get('name') || "Bùi Đức Anh";
+
+    // Format số điện thoại để copy và hiển thị
+    const phoneToCopy = pZalo.startsWith('+') || pZalo.startsWith('0') ? pZalo : '+' + pZalo;
     let savedMapLink = "";
-    const phoneToCopy = "+886989784646";
+
+    // Cập nhật giao diện theo nhân viên
+    window.onload = () => {
+        document.getElementById('driverInfo').innerText = `Tài xế: ${pName}`;
+        document.getElementById('phoneMainTxt').innerText = `💡 Lưu ý: Tìm số ${phoneToCopy} nếu zalo không hoạt động`;
+        document.getElementById('zaloLink').href = `https://zalo.me/${pZalo.replace('+', '')}`;
+        document.getElementById('msgLink').href = `https://m.me/${pMsg}`;
+    };
 
     function showToast(message) {
         const x = document.getElementById("toast");
@@ -303,11 +334,11 @@
     }
 
     // Sự kiện sao chép số điện thoại
-    document.getElementById('copyPhoneBtn').addEventListener('click', function() {
+    document.getElementById('copyPhoneBtn').onclick = () => {
         copyToClipboard(phoneToCopy).then(res => {
             if(res) showToast("✅ Đã sao chép số điện thoại!");
         });
-    });
+    };
 
     function handleZaloClick() {
         copyToClipboard(savedMapLink);
