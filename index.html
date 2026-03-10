@@ -1,0 +1,264 @@
+<!-- 
+    ===========================================================
+    DỰ ÁN: HỖ TRỢ GIAO HÀNG (Đoạn 001)
+    PHIÊN BẢN: 4.4 (Hỗ trợ giới hạn thời gian theo Giờ/Phút)
+    PHÁT TRIỂN BỞI: [YISINORA AKA BÙI ĐỨC ANH]
+    BẢN QUYỀN © 8-3-2026 THUỘC VỀ [YISINORA AKA BÙI ĐỨC ANH]. 
+    ===========================================================
+-->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hỗ trợ giao hàng v4.4</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            background-color: #f0f2f5; 
+            padding: 15px; 
+            color: #333; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        
+        .card { 
+            max-width: 450px; 
+            width: 100%;
+            margin: auto; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 20px; 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1); 
+            box-sizing: border-box;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #lockScreen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff;
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        h2 { text-align: center; color: #1a73e8; margin-top: 0; font-size: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .step { 
+            margin: 15px 0; 
+            padding: 15px; 
+            border-radius: 15px; 
+            background: #f8f9fa; 
+            border: 1px solid #e0e0e0; 
+            box-sizing: border-box;
+        }
+
+        .step-title { font-weight: bold; margin-bottom: 12px; display: block; color: #1a73e8; font-size: 16px; }
+
+        .btn-action { 
+            width: 100%; padding: 14px 10px; border: none; border-radius: 12px; font-size: 15px; 
+            font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            gap: 8px; margin-top: 8px; color: white; transition: 0.2s; text-decoration: none; box-sizing: border-box;
+        }
+
+        .btn-geo { background: #28a745; }
+        .btn-zalo { background: #0068FF; }
+        .btn-msg { background: #0084FF; }
+        
+        .btn-outline { background: #fff; border: 2px solid #ddd; color: #555; font-size: 13px; margin-top: 15px; }
+
+        .instruction-box {
+            display: none; background: #fff3cd; color: #856404; padding: 15px; border-radius: 15px;
+            font-size: 14px; margin: 10px 0; border: 2px solid #ffc107; line-height: 1.5;
+        }
+
+        .phone-note-container {
+            margin-top: 20px; padding: 12px; background: #fff8f8; border: 1px dashed #ffdde0;
+            border-radius: 10px; text-align: center; cursor: pointer;
+        }
+        
+        #toast {
+            visibility: hidden; min-width: 200px; background-color: #333; color: #fff; text-align: center;
+            border-radius: 10px; padding: 12px; position: fixed; z-index: 10000; top: 20px; left: 50%;
+            transform: translateX(-50%); font-size: 14px;
+        }
+
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 3.5s; }
+
+        @keyframes fadein { from {top: 0; opacity: 0;} to {top: 20px; opacity: 1;} }
+        @keyframes fadeout { from {top: 20px; opacity: 1;} to {top: 0; opacity: 0;} }
+
+        .driver-badge {
+            background: #e6f4ea; color: #137333; font-size: 11px; padding: 4px 10px;
+            border-radius: 20px; display: inline-block; margin-bottom: 8px; font-weight: bold;
+        }
+
+        .copyright-area { margin-top: 20px; font-size: 10px; color: #bbb; text-align: center; padding-bottom: 15px; }
+        
+        .time-badge { font-size: 12px; color: #d32f2f; margin-top: 10px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="lockScreen">
+    <div style="font-size: 60px;">🛑</div>
+    <h1 style="color: #d32f2f; margin: 15px 0;">DỰ ÁN TẠM DỪNG</h1>
+    <p id="lockReason" style="color: #666; line-height: 1.6;">
+        Phiên bản thử nghiệm đã hết hạn sử dụng.
+    </p>
+    <div id="expiryNotice" class="time-badge"></div>
+    <div style="margin-top: 30px; font-size: 12px; color: #ccc;" id="adminTrigger">
+        Yisinora AKA Bùi Đức Anh
+    </div>
+</div>
+
+<div class="card" id="mainContent">
+    <div style="text-align: center;">
+        <span class="driver-badge" id="driverInfo">Tài xế: Đang tải...</span>
+    </div>
+    <h2>🚚 HỖ TRỢ GIAO HÀNG</h2>
+
+    <div class="step">
+        <span class="step-title">Bước 1: Xác định vị trí của bạn</span>
+        <button class="btn-action btn-geo" onclick="getLocation()" id="geoBtn">
+            📍 BẤM ĐỂ LẤY VỊ TRÍ
+        </button>
+        <p id="status" style="margin-top:10px; font-size: 13px; text-align: center; font-weight: bold; color: #666;"></p>
+    </div>
+
+    <div id="step2" class="step" style="display: none; border-color: #0068FF;">
+        <span class="step-title">Bước 2: Gửi cho tài xế</span>
+        <div id="generalInstruct" class="instruction-box" style="display: block; border-style: dashed;">
+            ✅ <b>VỊ TRÍ ĐÃ ĐƯỢC CHÉP!</b><br>
+            Bấm nút dưới đây để mở App. Sau đó vào ô nhắn tin, <b>Dán (Paste)</b> và gửi đi nhé.
+        </div>
+        <div id="appSelector">
+            <button class="btn-action btn-zalo" onclick="sendDirect('zalo')">💬 Mở Zalo & Gửi ngay</button>
+            <button class="btn-action btn-msg" onclick="sendDirect('msg')">🌀 Mở Messenger & Gửi ngay</button>
+        </div>
+        <a id="viewMapBtn" href="#" target="_blank" class="btn-action btn-outline" style="display: none;">🗺️ Xem lại trên Bản đồ</a>
+        <div class="phone-note-container" id="copyPhoneBtn">
+            <span id="phoneMainTxt" style="font-size: 14px; color: #d32f2f; font-weight: 700;">💡 Lưu ý: Tìm số...</span>
+        </div>
+    </div>
+</div>
+
+<div id="toast">Thông báo</div>
+
+<div class="copyright-area">
+    Phiên bản 4.4<br>
+    Bản quyền © <b>Yisinora AKA Bùi Đức Anh</b>.
+</div>
+
+<script>
+    // --- CẤU HÌNH THEO GIỜ/PHÚT ---
+    // Định dạng: YYYY-MM-DD HH:mm (Ví dụ: "2026-03-16 00:00")
+    const DEFAULT_EXPIRY = "2026-03-16 00:00"; 
+    const ADMIN_PASSWORD = "301003";
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const pZalo = urlParams.get('zalo') || "886989784646";
+    const pMsg = urlParams.get('msg') || "Anh301003";
+    const pName = urlParams.get('name') || "Bùi Đức Anh";
+    const extDays = urlParams.get('days'); 
+    const customExpire = urlParams.get('expire'); // URL: &expire=2026-03-16T14:30
+
+    window.onload = () => {
+        checkExpiry();
+        document.getElementById('driverInfo').innerText = `Tài xế: ${pName}`;
+        document.getElementById('phoneMainTxt').innerText = `💡 Tìm số ${pZalo} nếu lỗi`;
+        setupAdminShortcut();
+    };
+
+    function checkExpiry() {
+        const now = new Date();
+        let expiryDate = new Date(DEFAULT_EXPIRY.replace(' ', 'T')); // Chuyển sang chuẩn ISO
+
+        if (customExpire) {
+            expiryDate = new Date(customExpire);
+        } else if (extDays) {
+            expiryDate.setDate(expiryDate.getDate() + parseInt(extDays));
+        }
+
+        const bypass = sessionStorage.getItem('admin_access');
+
+        if (now > expiryDate && !bypass) {
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('lockScreen').style.display = 'flex';
+            document.getElementById('expiryNotice').innerText = `Hết hạn vào: ${expiryDate.toLocaleString('vi-VN')}`;
+        }
+    }
+
+    function setupAdminShortcut() {
+        let timer;
+        const trigger = document.getElementById('adminTrigger');
+        const start = () => timer = setTimeout(promptAdmin, 3000);
+        const end = () => clearTimeout(timer);
+        trigger.addEventListener('mousedown', start);
+        trigger.addEventListener('touchstart', start);
+        trigger.addEventListener('mouseup', end);
+        trigger.addEventListener('touchend', end);
+    }
+
+    function promptAdmin() {
+        const pass = prompt("NHẬP MÃ QUẢN TRỊ VIÊN:");
+        if (pass === ADMIN_PASSWORD) {
+            sessionStorage.setItem('admin_access', 'true');
+            alert("✅ Quyền Admin kích hoạt!");
+            location.reload();
+        }
+    }
+
+    function showToast(message) {
+        const x = document.getElementById("toast");
+        x.innerHTML = message; x.className = "show";
+        setTimeout(() => x.className = x.className.replace("show", ""), 4000);
+    }
+
+    async function copyToClipboard(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text; document.body.appendChild(textArea);
+        textArea.select(); document.execCommand('copy');
+        document.body.removeChild(textArea);
+        return true;
+    }
+
+    function getLocation() {
+        const status = document.getElementById('status');
+        const geoBtn = document.getElementById('geoBtn');
+        status.innerText = "🛰️ Đang tìm vị trí...";
+        geoBtn.disabled = true;
+        navigator.geolocation.getCurrentPosition((pos) => {
+            savedMapLink = `https://www.google.com/maps?q=${pos.coords.latitude},${pos.coords.longitude}`;
+            status.innerHTML = "<span style='color: #28a745;'>✅ Đã xác định vị trí!</span>";
+            copyToClipboard(savedMapLink).then(() => {
+                showToast("✅ Đã chép vị trí!");
+                document.getElementById('viewMapBtn').href = savedMapLink;
+                document.getElementById('viewMapBtn').style.display = "flex";
+                document.getElementById('step2').style.display = "block";
+            });
+        }, () => { status.innerText = "⚠️ Hãy bật GPS."; geoBtn.disabled = false; });
+    }
+
+    async function sendDirect(type) {
+        await copyToClipboard(savedMapLink);
+        const url = (type === 'zalo') ? `https://zalo.me/${pZalo.replace(/\+/g, '')}` : `https://m.me/${pMsg}`;
+        window.location.href = url;
+    }
+
+    document.getElementById('copyPhoneBtn').onclick = () => {
+        copyToClipboard(pZalo).then(() => showToast("✅ Đã chép số!"));
+    };
+</script>
+</body>
+</html>
